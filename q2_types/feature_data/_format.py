@@ -41,15 +41,15 @@ class DNAFASTAFormat(model.TextFileFormat):
         filepath = str(self)
         sniffer = skbio.io.io_registry.get_sniffer('fasta')
         if sniffer(filepath)[0]:
-            generator = skbio.io.read(filepath, constructor=skbio.DNA,
-                                      format='fasta', verify=False)
             try:
-                for seq, _ in zip(generator, range(5)):
+                generator = skbio.io.read(filepath, constructor=skbio.DNA,
+                                          format='fasta', verify=False)
+                for seq, _ in zip(generator, range(15)):
                     pass
                 return True
             # ValueError raised by skbio if there are invalid DNA chars.
             except ValueError:
-                pass
+                return False
         return False
 
 
@@ -69,17 +69,17 @@ class AlignedDNAFASTAFormat(model.TextFileFormat):
         filepath = str(self)
         sniffer = skbio.io.io_registry.get_sniffer('fasta')
         if sniffer(filepath)[0]:
-            generator = skbio.io.read(filepath, constructor=skbio.DNA,
-                                      format='fasta', verify=False)
             try:
+                generator = skbio.io.read(filepath, constructor=skbio.DNA,
+                                          format='fasta', verify=False)
                 initial_length = len(next(generator))
-                for seq, _ in zip(generator, range(4)):
+                for seq, _ in zip(generator, range(15)):
                     if len(seq) != initial_length:
                         return False
                 return True
             # ValueError raised by skbio if there are invalid DNA chars.
             except (StopIteration, ValueError):
-                pass
+                return False
         return False
 
 
