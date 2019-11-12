@@ -989,19 +989,19 @@ class TestFastqManifestV2Transformers(TestPluginBase):
             fh.write(tmpl.substitute(**ctx))
         return file_
 
-    def apply_transformation(self, from_fmt, to_fmt, datafile_fp, manifest_fp):
+    def apply_transformation(self, from_fmt, to_fmt, ctx, manifest_fp):
         transformer = self.get_transformer(from_fmt, to_fmt)
-        fp = self.get_data_path(datafile_fp)
         manifest = self.template_manifest(
             self.get_data_path(manifest_fp),
-            {k: fp for k in ['s1', 's2', 's1f', 's1r', 's2f', 's2r']})
+            {k: self.get_data_path(v) for k, v in ctx.items()})
         return transformer(from_fmt(manifest, 'r'))
 
     def test_single_end_fastq_manifest_phred33_to_slpssefdf(self):
         obs = self.apply_transformation(
             SingleEndFastqManifestPhred33V2,
             SingleLanePerSampleSingleEndFastqDirFmt,
-            'Human-Kneecap_S1_L001_R1_001.fastq.gz',
+            {'s1': 'Human-Kneecap_S1_L001_R1_001.fastq.gz',
+             's2': 'Human-Kneecap_S1_L001_R1_001.fastq'},
             'absolute_manifests_v2/single-MANIFEST')
 
         with obs.manifest.view(FastqManifestFormat).open() as obs_manifest:
@@ -1011,7 +1011,7 @@ class TestFastqManifestV2Transformers(TestPluginBase):
         obs = self.apply_transformation(
             SingleEndFastqManifestPhred64V2,
             SingleLanePerSampleSingleEndFastqDirFmt,
-            's1-phred64.fastq.gz',
+            {'s1': 's1-phred64.fastq.gz', 's2': 's2-phred64.fastq.gz'},
             'absolute_manifests_v2/single-MANIFEST')
 
         with obs.manifest.view(FastqManifestFormat).open() as obs_manifest:
@@ -1021,7 +1021,10 @@ class TestFastqManifestV2Transformers(TestPluginBase):
         obs = self.apply_transformation(
             PairedEndFastqManifestPhred33V2,
             SingleLanePerSamplePairedEndFastqDirFmt,
-            'Human-Kneecap_S1_L001_R1_001.fastq.gz',
+            {'s1f': 'Human-Kneecap_S1_L001_R1_001.fastq.gz',
+             's1r': 'Human-Kneecap_S1_L001_R1_001.fastq',
+             's2f': 'Human-Armpit.fastq',
+             's2r': 'Human-Armpit.fastq.gz'},
             'absolute_manifests_v2/paired-MANIFEST')
 
         with obs.manifest.view(FastqManifestFormat).open() as obs_manifest:
@@ -1031,7 +1034,10 @@ class TestFastqManifestV2Transformers(TestPluginBase):
         obs = self.apply_transformation(
             PairedEndFastqManifestPhred64V2,
             SingleLanePerSamplePairedEndFastqDirFmt,
-            's1-phred64.fastq.gz',
+            {'s1f': 's1-phred64.fastq',
+             's1r': 's1-phred64.fastq.gz',
+             's2f': 's2-phred64.fastq',
+             's2r': 's2-phred64.fastq.gz'},
             'absolute_manifests_v2/paired-MANIFEST')
 
         with obs.manifest.view(FastqManifestFormat).open() as obs_manifest:
